@@ -23,7 +23,6 @@ vector<vector<Point>>& filterContours(Mat& frame_threshold)
 Mat& HSVFilter(Mat& frame,Mat& frame_HSV,Mat& frame_threshold,const Shape& shape)
 {
     cvtColor(frame, frame_HSV, COLOR_BGR2HSV);
-    cout<<shape.getMinColorH()<<endl;
     inRange(frame_HSV, Scalar(shape.getMinColorH(), low_S, low_V), Scalar(shape.getMaxColorH(), high_S, high_V), frame_threshold);
     return frame_threshold;
 }
