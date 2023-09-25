@@ -45,7 +45,7 @@ Shape::Shape(const std::string& shape,const std::string& colour,bool video)
         minCorners = 7;
         maxCorners = 99;
     }
-    else if(shape=="halvecirkel")
+    else if(shape=="halve cirkel")
     {
         this->shape=HALFCIRCLE;
         minCorners = 5;
@@ -54,7 +54,7 @@ Shape::Shape(const std::string& shape,const std::string& colour,bool video)
     else
     {
         this->shape = DEFAULT_S;
-        std::cout<<"This shape doesn't exist, the available ones are:driehoek,vierkant,rechthoek,cirkel,halvecirkel."<<std::endl;
+        std::cout<<"This shape doesn't exist, the available ones are:driehoek,vierkant,rechthoek,cirkel,halve cirkel."<<std::endl;
     }
 
     if(colour=="oranje")
