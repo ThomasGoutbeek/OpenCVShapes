@@ -16,12 +16,17 @@ ShapeDetection::~ShapeDetection()
 void ShapeDetection::checkInput(const string& s)
 {
     size_t spaceIndex = s.find(' ');
+    size_t half = s.find("halve");
     if(spaceIndex == string::npos)
     {
         cout<<"String needs to contain a whitespace and have this format:[shape][whitespace][colour]"<<endl;
     }
-    else
+    else 
     {
+        if(half != string::npos)
+        {
+            spaceIndex = s.find(' ',spaceIndex+1);
+        }
         string shapetext = s.substr(0,spaceIndex);
         string colourtext = s.substr(spaceIndex+1,s.length()-1);
         Shape shape(shapetext,colourtext,video);
