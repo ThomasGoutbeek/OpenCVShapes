@@ -9,17 +9,27 @@ using namespace std;
 
 class ShapeDetection{
     public:
-        ShapeDetection(bool video);
-        ShapeDetection(const vector<Shape>& shapes);
+        ShapeDetection(bool video,bool batch);
+        ShapeDetection(Shape& shape);
         ~ShapeDetection();
-        void checkInput(const string& s);
+        void checkInput();
         void askForShape();
 
         void readFromFile(string filename);
-        vector<Shape>& getShapes();
+
+        void print(string text, int xPos, int yPos);
+
+        Shape& getShape();
+        string& getInput();
+        void changeShape();
+
     private:
-        vector<Shape> shapes;
+        Shape shape;
         bool video;
+        string input;
+        bool batch;
+        vector<string> batchStrings;
+        uint16_t shapeCounter;
 };
 
 #endif

@@ -5,13 +5,35 @@ Shape::Shape():shape(DEFAULT_S),colour(DEFAULT_C),minCorners(0),maxCorners(0),sh
 
 }
 
-Shape::Shape(const std::string& shape,const std::string& colour,bool video)
+ShapeType Shape::getShapeType() const
+{
+    return shape;
+}
+
+Colour Shape::getColour() const
+{
+    return colour;
+}
+
+uint16_t Shape::getMinColorH() const
+{
+    return minColorH;
+}
+
+uint16_t Shape::getMaxColorH() const
+{
+    return maxColorH;
+}
+
+void Shape::setNewShape(const std::string& shape,const std::string& colour,bool video)
 {
     shapeString = shape;
     colourString = colour;
+
     std::array<uint16_t,8> neonShapeValues = {5,20,25,37,160,180,60,100};
     std::array<uint16_t,8> videoValues = {1,15,16,26,150,175,50,75};
     std::array<uint16_t,8> colourValues = {};
+    
     if(video)
     {
         colourValues = videoValues;
@@ -88,28 +110,7 @@ Shape::Shape(const std::string& shape,const std::string& colour,bool video)
     }
 }
 
-ShapeType Shape::getShapeType() const
-{
-    return shape;
-}
-
-Colour Shape::getColour() const
-{
-    return colour;
-}
-
-uint16_t Shape::getMinColorH() const
-{
-    return minColorH;
-}
-
-uint16_t Shape::getMaxColorH() const
-{
-    return maxColorH;
-}
-
-
-Mat& Shape::searchForShape(Mat& frame,const vector<vector<Point>>& contours, bool batch)
+Mat& Shape::searchForShape(bool batch)
 {
     found = false;
     for( size_t i = 0; i< contours.size(); i++ )
@@ -135,26 +136,90 @@ Mat& Shape::searchForShape(Mat& frame,const vector<vector<Point>>& contours, boo
             {
                 drawContours(frame,conPoly,i,Scalar(255,0,255),2);
                 rectangle(frame,boundRect[i].tl(),boundRect[i].br(),Scalar(0,255,0),5);
+
                 int middleX = boundRect[i].x+boundRect[i].width/2;
                 int middleY = boundRect[i].y+boundRect[i].height/2;
+
                 string xyText = to_string(middleX) + "," + to_string(middleY);
+                string areaText = "Area: " + to_string(area);
                 if(batch)
                 {
-                    cout << shapeString + " " + colourString + ": " + xyText<<endl;
+                    print(shapeString + ", "+ colourString+": "+ xyText,batch,middleX-5,middleY);
                 }
                 else
                 {
-                    putText(frame,xyText,{middleX-5,middleY},FONT_ITALIC,0.5,Scalar(255,0,0),2);
+                    print(xyText,batch,middleX-5,middleY);
                 }
+
+                print(areaText,batch,middleX,middleY+15);
+
                 found = true;
             }
         }
     }
     if(!found)
     {
-        cout << shapeString + " " + colourString + ": Not found"<<endl;
+        string notfound = shapeString + " " + colourString + ": Not found";
+        print(notfound,batch,0,40);
     }
     return frame;
+}
+
+void Shape::print(string text,bool batch, int xPos, int yPos)
+{
+    if(batch)
+    {
+        cout << text << endl;
+    }
+    else
+    {
+        putText(frame, text, {xPos,yPos},FONT_ITALIC,0.7,Scalar(255,0,0),2);
+    }
+}
+
+bool Shape::checkInput(string text, int linecounter)
+{
+    bool correctShape = true;
+    bool correctColour = true;
+
+    if(text.find("vierkant")==string::npos&&text.find("halve cirkel")==string::npos&&text.find("cirkel")==string::npos&&text.find("rechthoek")==string::npos&&text.find("driehoek")==string::npos)
+    {
+        std::cout<<"The shape on line " + to_string(linecounter) + " doesn't exist, the available ones are: driehoek,vierkant,rechthoek,cirkel,halve cirkel."<<std::endl;
+        correctShape = false;
+    }
+
+    if(text.find("groen")==string::npos&&text.find("roze")==string::npos&&text.find("geel")==string::npos&&text.find("oranje")==string::npos)
+    {
+        std::cout<<"The colour on line " + to_string(linecounter) + " doesn't exist, the available ones are: oranje, geel, roze, groen."<<std::endl;
+        correctColour = false;
+    }
+
+    return correctShape&&correctColour;
+}
+
+const Mat& Shape::getFrame() const
+{
+    return frame;
+}
+
+void Shape::setFrame(Mat frame)
+{
+    this->frame = frame;
+}
+void Shape::setFrame(VideoCapture& cap)
+{
+    cap >> frame;
+}
+void Shape::show()
+{
+    imshow("Contours",frame);
+    imshow("Object Detection",frame_threshold);
+}
+
+void Shape::filter()
+{
+    frame_threshold = HSVFilter(frame,frame_HSV,frame_threshold,minColorH,maxColorH);
+    contours = filterContours(frame_threshold,contours);
 }
 
 Shape::~Shape()

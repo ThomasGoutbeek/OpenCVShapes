@@ -1,6 +1,5 @@
 #include "Filters.hpp"
 
-vector<vector<Point>> contours;
 const uint16_t thresh = 100;
 
 const int max_value_H = 360/2;
@@ -11,7 +10,7 @@ const String window_detection_name = "Object Detection";
 int low_H = 0, low_S = 0, low_V = 0;
 int high_H = max_value_H, high_S = max_value, high_V = max_value;
 
-vector<vector<Point>>& filterContours(Mat& frame_threshold)
+vector<vector<Point>>& filterContours(Mat& frame_threshold,vector<vector<Point>>& contours)
 {
     Mat canny_output;
     Canny( frame_threshold, canny_output, thresh, thresh*2 );
@@ -20,10 +19,10 @@ vector<vector<Point>>& filterContours(Mat& frame_threshold)
     return contours;
 }
 
-Mat& HSVFilter(Mat& frame,Mat& frame_HSV,Mat& frame_threshold,const Shape& shape)
+Mat& HSVFilter(Mat& frame,Mat& frame_HSV,Mat& frame_threshold,int minColorH,int maxColorH)
 {
     cvtColor(frame, frame_HSV, COLOR_BGR2HSV);
-    inRange(frame_HSV, Scalar(shape.getMinColorH(), low_S, low_V), Scalar(shape.getMaxColorH(), high_S, high_V), frame_threshold);
+    inRange(frame_HSV, Scalar(minColorH, low_S, low_V), Scalar(maxColorH, high_S, high_V), frame_threshold);
     return frame_threshold;
 }
 
@@ -62,10 +61,10 @@ void createTrackbars()
 {
     namedWindow(window_capture_name);
     namedWindow(window_detection_name);
-    createTrackbar("Low H", window_detection_name, &low_H, max_value_H, on_low_H_thresh_trackbar);
-    createTrackbar("High H", window_detection_name, &high_H, max_value_H, on_high_H_thresh_trackbar);
+    //createTrackbar("Low H", window_detection_name, &low_H, max_value_H, on_low_H_thresh_trackbar);
+    //createTrackbar("High H", window_detection_name, &high_H, max_value_H, on_high_H_thresh_trackbar);
     createTrackbar("Low S", window_detection_name, &low_S, max_value, on_low_S_thresh_trackbar);
-    createTrackbar("High S", window_detection_name, &high_S, max_value, on_high_S_thresh_trackbar);
+    //createTrackbar("High S", window_detection_name, &high_S, max_value, on_high_S_thresh_trackbar);
     createTrackbar("Low V", window_detection_name, &low_V, max_value, on_low_V_thresh_trackbar);
-    createTrackbar("High V", window_detection_name, &high_V, max_value, on_high_V_thresh_trackbar);
+    //createTrackbar("High V", window_detection_name, &high_V, max_value, on_high_V_thresh_trackbar);
 }

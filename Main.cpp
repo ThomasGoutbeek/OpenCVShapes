@@ -13,74 +13,80 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    VideoCapture cap(0);
+    VideoCapture cap(2);
     createTrackbars();
     bool video = false;
+    bool batch = false;
+
     string v = "video";
+    thread th;
 
     if(argv[1]==v)
     {
         video = true;
     }
 
-    ShapeDetection s(video);
-    bool batch = false;
     if(argc==3)
     {
-        s.readFromFile(argv[2]);
         batch = true;
+    }
+
+    ShapeDetection s(video,batch);
+
+    if(batch)
+    {
+        s.readFromFile(argv[2]);
     }
     else
     {
-        s.askForShape();
+        th = thread(&ShapeDetection::askForShape,&s);
     }
-    Mat frame,frame_HSV,frame_threshold;
 
-    vector<vector<Point>> contours;
-    vector<Shape>& shapes = s.getShapes();
-
-    while (true) {
+    Shape& shape = s.getShape();
+    
+    while (s.getInput()!="exit") {
 
         if(video)
         {
-            cap >> frame;
-            resize(frame, frame, Size(frame.size().width/2, frame.size().height/2), INTER_LINEAR);
+            shape.setFrame(cap);
         }
         else
         {
-            frame = imread("Neon_shapes.png");
+            shape.setFrame(imread("Neon_shapes.png"));
         }
 
-        if(frame.empty())
+        if(shape.getFrame().empty())
         {
             break;
         }
-
-        for(Shape& shape:shapes)
+        if(batch)
         {
-            auto timeStart = chrono::high_resolution_clock::now();
-
-            frame_threshold = HSVFilter(frame,frame_HSV,frame_threshold,shape);
-            contours = filterContours(frame_threshold);
-            frame = shape.searchForShape(frame,contours,batch);
-
-            auto timeDone = chrono::high_resolution_clock::now();
-            cout<<"Nanoseconds to find: ";
-            cout<< std::chrono::duration_cast<std::chrono::nanoseconds>(timeDone-timeStart).count()<<endl;
-
-            imshow("Object Detection", frame_threshold);
-            imshow("Contours",frame);
+            s.changeShape();
         }
+        ostringstream out;
+        auto timeStart = chrono::high_resolution_clock::now();
+
+        shape.filter();
+        shape.searchForShape(batch);
+
+        auto timeDone = chrono::high_resolution_clock::now();
+
+        out << std::chrono::duration_cast<std::chrono::nanoseconds>(timeDone-timeStart).count();
+
+        string time = "Nanoseconds to find: " + out.str();
+
+        s.print(time,0,20);
+        shape.show();
 
         char key = (char) waitKey(30);
-        this_thread::sleep_for(chrono::milliseconds(100));
-        system("clear");
+        this_thread::sleep_for(chrono::milliseconds(1000));
 
         if (key == 'q')
         {
             break;
         }
     }
+    th.join();
     return 0;
 }
 

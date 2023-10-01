@@ -1,10 +1,10 @@
 #include "ShapeDetection.hpp"
 
-ShapeDetection::ShapeDetection(bool video):video(video)
+ShapeDetection::ShapeDetection(bool video,bool batch):video(video),batch(batch),shapeCounter(0)
 {
 
 }
-ShapeDetection::ShapeDetection(const vector<Shape>& shapes):shapes(shapes)
+ShapeDetection::ShapeDetection(Shape& shape):shape(shape)
 {
 
 }
@@ -13,11 +13,11 @@ ShapeDetection::~ShapeDetection()
 
 }
 
-void ShapeDetection::checkInput(const string& s)
+void ShapeDetection::checkInput()
 {
-    size_t spaceIndex = s.find(' ');
-    size_t half = s.find("halve");
-    if(spaceIndex == string::npos)
+    size_t spaceIndex = input.find(' ');
+    size_t half = input.find("halve");
+    if(spaceIndex == string::npos&&input!="exit")
     {
         cout<<"String needs to contain a whitespace and have this format:[shape][whitespace][colour]"<<endl;
     }
@@ -25,48 +25,75 @@ void ShapeDetection::checkInput(const string& s)
     {
         if(half != string::npos)
         {
-            spaceIndex = s.find(' ',spaceIndex+1);
+            spaceIndex = input.find(' ',spaceIndex+1);
         }
-        string shapetext = s.substr(0,spaceIndex);
-        string colourtext = s.substr(spaceIndex+1,s.length()-1);
-        Shape shape(shapetext,colourtext,video);
-        if(shape.getShapeType()!=DEFAULT_S&&shape.getColour()!=DEFAULT_C)
+        string shapetext = input.substr(0,spaceIndex);
+        string colourtext = input.substr(spaceIndex+1,input.length()-1);
+        if(batch)
         {
-            shapes.push_back(shape);
+            shape.setNewShape(shapetext,colourtext,video);
         }
+        else if(shape.checkInput(input,0))
+        {
+            shape.setNewShape(shapetext,colourtext,video);
+        }
+        
     }
 }
 
 void ShapeDetection::askForShape()
 {
-    string input;
     do{
         cout<<"Which shape and colour do you want to search?";
         getline(cin,input);
-        checkInput(input);
-    }while(shapes.empty());
+        checkInput();
+    }while(input!="exit");
 }
 
 
 void ShapeDetection::readFromFile(string filename)
 {
     fstream file;
-    string data;
+    int linecounter = 0;
     file.open(filename, ios::in);
     if (file.is_open()) {
-        string data;
-        while (getline(file, data)) {
-            if(data.at(0)!='#')
+        while (getline(file, input)) {
+            if(input.at(0)!='#')
             {
-                checkInput(data);
+                if(shape.checkInput(input,linecounter))
+                {
+                    batchStrings.push_back(input);
+                }
             }
+            linecounter++;
         }
         file.close();
     }
 }
 
-
-vector<Shape>& ShapeDetection::getShapes()
+void ShapeDetection::changeShape()
 {
-    return shapes;
+    input = batchStrings.at(shapeCounter);
+    checkInput();
+    
+    shapeCounter++;
+    if(shapeCounter==batchStrings.size())
+    {
+        shapeCounter = 0;
+    }
+}
+
+void ShapeDetection::print(string text, int xPos, int yPos)
+{
+    shape.print(text,batch,xPos,yPos);
+}
+
+Shape& ShapeDetection::getShape()
+{
+    return shape;
+}
+
+string& ShapeDetection::getInput()
+{
+    return input;
 }

@@ -1,5 +1,5 @@
 #Dit is een txt file waar je meerdere vormen kan invoeren om te zoeken, met het format [vorm][whitespace][kleur]
 driehoek groen
-vierkant oranje
-halvecirkel roze
+rechthoek oranje
+halve cirkel roze
 cirkel oranje

@@ -1,7 +1,7 @@
 #ifndef SHAPE_HPP
 #define SHAPE_HPP
 #include <iostream>
-#include "opencv2/imgproc.hpp" 
+#include "Filters.hpp"
 using namespace cv;
 using namespace std;
 
@@ -14,14 +14,25 @@ enum Colour{
 class Shape{
     public:
         Shape();
-        Shape(const string& shape,const string& colour,bool video);
         ~Shape();
         ShapeType getShapeType() const;
         Colour getColour() const;
         uint16_t getMinColorH() const;
         uint16_t getMaxColorH() const;
+
+        void setNewShape(const string& shape,const string& colour,bool video);
+        bool checkInput(string text, int linecounter);
+
+        const Mat& getFrame() const;
+        void setFrame(Mat frame);
+        void setFrame(VideoCapture& cap);
         
-        Mat& searchForShape(Mat& frame,const vector<vector<Point>>& contours, bool batch);
+        void filter();
+        Mat& searchForShape(bool batch);
+
+        void print(string text,bool batch,int xPos=0,int yPos=0);
+        void show();
+
     private:
         ShapeType shape;
         Colour colour;
@@ -32,6 +43,8 @@ class Shape{
         uint16_t minColorH;
         uint16_t maxColorH;
         bool found;
+        Mat frame, frame_threshold, frame_HSV;
+        vector<vector<Point>> contours;
 };
 
 #endif
